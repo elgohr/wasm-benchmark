@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Go wasm</title>
+</head>
+
+<body>
+<script src="wasm_exec.js"></script>
+<script>
+    const go = new Go();
+    let mod, inst;
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+        mod = result.module;
+        inst = result.instance;
+    }).catch((err) => {
+        console.error(err);
+    });
+
+    async function runWasm() {
+        console.clear();
+        await go.run(inst);
+        inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
+    }
+</script>
+<script type="application/javascript">
+    function isPrime(value) {
+        for (let i = 2; i <= Math.floor(value / 2); i++) {
+            if (value % i === 0) {
+                return false
+            }
+        }
+        return value > 1
+    }
+
+    function runJs() {
+        console.clear();
+        let value = 0;
+        let numberOfPrimes = 0;
+        let sequencesSinceStart = 0;
+        let second = new Date().getSeconds();
+        while (sequencesSinceStart <= 10) {
+            let currentSecond = new Date().getSeconds();
+            if (second !== currentSecond) {
+                console.log(sequencesSinceStart + "-" + numberOfPrimes);
+                second = currentSecond;
+                numberOfPrimes = 0;
+                sequencesSinceStart++;
+            }
+            if (isPrime(value)) {
+                numberOfPrimes++
+            }
+            value++
+        }
+    }
+</script>
+
+<button onClick="runWasm();" id="runButton">Run WASM</button>
+<button onClick="runJs();" id="runButton">Run JS</button>
+</body>
+
+</html>
